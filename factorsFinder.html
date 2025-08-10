@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Factor Finder</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f9f9f9;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      width: 80%;
+      font-size: 18px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    .output {
+      margin-top: 30px;
+      text-align: left;
+    }
+
+    .pair {
+      background: #f1f1f1;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    .factor-list {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Factor Finder 🔍</h1>
+    <input type="number" id="numberInput" placeholder="Enter a number..." />
+    <br />
+    <button onclick="findFactors()">Find Factors</button>
+
+    <div id="output" class="output"></div>
+  </div>
+
+  <script>
+    function findFactors() {
+      const num = parseInt(document.getElementById('numberInput').value);
+      const output = document.getElementById('output');
+      output.innerHTML = '';
+
+      if (isNaN(num) || num <= 0) {
+        output.innerHTML = "<p style='color:red;'>Please enter a positive number.</p>";
+        return;
+      }
+
+      const factors = [];
+      const pairs = [];
+
+      for (let i = 1; i <= Math.floor(Math.sqrt(num)); i++) {
+        if (num % i === 0) {
+          factors.push(i);
+          if (num / i !== i) {
+            factors.push(num / i);
+            pairs.push([i, num / i]);
+          } else {
+            pairs.push([i, i]);
+          }
+        }
+      }
+
+      factors.sort((a, b) => a - b);
+
+      const factorList = `<div class="factor-list">✅ Factors of ${num}: <strong>${factors.join(', ')}</strong></div>`;
+      const pairList = pairs.map(pair => `<div class="pair">${pair[0]} × ${pair[1]} = ${num}</div>`).join('');
+
+      output.innerHTML = factorList + "<h3>🧮 Factor Pairs:</h3>" + pairList;
+    }
+  </script>
+</body>
+</html>
