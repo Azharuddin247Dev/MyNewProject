@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nokia 1100 Snake Game</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      font-family: 'Press Start 2P', monospace;
+      color: #0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      user-select: none;
+    }
+
+    h1 {
+      margin: 12px 0 0 0;
+      font-size: 1.2rem;
+      color: #0f0;
+      text-align: center;
+      text-shadow:
+        0 0 5px #0f0,
+        0 0 10px #0f0;
+    }
+
+    .game-container {
+      margin-top: 10px;
+      background-color: #222;
+      border: 4px solid #0f0;
+      border-radius: 10px;
+      box-shadow:
+        0 0 10px #0f0,
+        inset 0 0 20px #0f0;
+      position: relative;
+    }
+
+    #gameCanvas {
+      display: block;
+      background-color: #000;
+      image-rendering: pixelated;
+      border-radius: 6px;
+    }
+
+    .controls-container {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      max-width: 400px;
+    }
+
+    .control-group {
+      background: #060;
+      border: 2px solid #0f0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      box-shadow:
+        0 0 5px #0f0;
+    }
+
+    .control-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    button,
+    input[type="range"],
+    input[type="text"],
+    select {
+      cursor: pointer;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: bold;
+      color: #0f0;
+      background: #030;
+      border: 2px solid #0f0;
+      border-radius: 6px;
+      transition: all 0.15s ease-in-out;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    input[type="text"] {
+      color: #0f0;
+      background: transparent;
+      padding: 2px 6px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    button:hover,
+    button:focus {
+      background: #0f0;
+      color: #000;
+      outline: none;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 14px;
+      background: #030;
+      border-radius: 6px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      background: #0f0;
+      cursor: pointer;
+      border-radius: 50%;
+      border: none;
+      margin-top: -4px;
+    }
+
+    input[type="range"]:focus {
+      outline: none;
+    }
+
+    /* Navigation buttons */
+    .btn-navigation {
+      display: flex;
+      flex-wrap: wrap;
+      max-width: 140px;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-navigation button {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+      line-height: 18px;
+    }
+
+    .btn-navigation .up {
+      grid-column: 2;
+    }
+
+    .btn-navigation .left {
+      grid-column: 1;
+    }
+
+    .btn-navigation .right {
+      grid-column: 3;
+    }
+
+    .btn-navigation .down {
+      grid-column: 2;
+    }
+
+    .btn-navigation {
+      display: grid;
+      grid-template-columns: 40px 40px 40px;
+      grid-template-rows: 40px 40px;
+      gap: 6px;
+    }
+
+    .btn-navigation button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .status-display {
+      margin-top: 14px;
+      font-size: 0.95rem;
+      text-align: center;
+      min-height: 1.4em;
+      text-shadow:
+        0 0 6px #0f0;
+      line-height: 1.4em;
+    }
+
+    .highscore-display {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #0f0;
+      user-select: none;
+    }
+
+    .footer {
+      margin-top: auto;
+      margin-bottom: 8px;
+      font-size: 0.65rem;
+      color: #060;
+      text-align: center;
+    }
+
+    /* Start Overlay */
+    #startOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      color: #0f0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    #startOverlay h2 {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    #modeSelectGroup {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    #playerNameInputs {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 20px;
+      width: 280px;
+    }
+
+    #playerNameInputs label {
+      font-size: 0.9rem;
+    }
+
+    #playerNameInputs input[type="text"] {
+      font-size: 1rem;
+      padding: 6px 10px;
+      border: 2px solid #0f0;
+      border-radius: 6px;
+      background: transparent;
+      color: #0f0;
+    }
+
+    #playerNameInputs input[type="text"]:focus {
+      outline: none;
+      border-color: #0ff;
+      box-shadow: 0 0 8px #0ff;
+    }
+
+    #startGameBtn {
+      font-size: 1rem;
+      padding: 10px 20px;
+      border: 2px solid #0f0;
+      background-color: #030;
+      border-radius: 8px;
+    }
+
+    #startGameBtn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Player 1 Keyboard Controls group */
+    #p1KeyControlGroup {
+      background: #060;
+      border: 2px solid #0f0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      box-shadow: 0 0 5px #0f0;
+      max-width: 280px;
+      margin: 8px auto;
+    }
+
+    #p1KeyControlGroup label {
+      font-size: 0.85rem;
+      display: inline-block;
+      width: 70px;
+    }
+
+    #p1KeyControlGroup select {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      width: 70px;
+      background: #030;
+      border: 2px solid #0f0;
+      color: #0f0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Media queries for smaller screens */
+    @media (max-width: 420px) {
+      body {
+        font-size: 9px;
+      }
+
+      #gameCanvas {
+        width: 640px !important;
+        height: 640px !important;
+      }
+
+      .controls-container {
+        max-width: 280px;
+        gap: 8px;
+      }
+
+      #playerNameInputs {
+        width: 220px;
+      }
+
+      #p1KeyControlGroup {
+        max-width: 220px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Nokia 1100 Snake Game</h1>
+
+  <!-- Start Overlay -->
+  <section id="startOverlay" role="dialog" aria-modal="true" aria-labelledby="modeTitle" aria-describedby="modeDesc">
+    <h2 id="modeTitle">Select Game Mode</h2>
+    <p id="modeDesc">Choose mode and enter player name(s) to start</p>
+    <div id="modeSelectGroup" role="radiogroup" aria-label="Game Mode Selection">
+      <label>
+        <input type="radio" name="gameMode" value="single" checked>
+        Single Player
+      </label>
+      <label>
+        <input type="radio" name="gameMode" value="multi">
+        Multiplayer
+      </label>
+    </div>
+    <form id="playerNameInputs" aria-live="polite" aria-atomic="true">
+      <label for="player1Name">Player 1 Name:</label>
+      <input type="text" id="player1Name" name="player1Name" autocomplete="off" maxlength="15" required
+        placeholder="Enter Player 1 Name" />
+      <div id="player2InputContainer" style="display: none;">
+        <label for="player2Name">Player 2 Name:</label>
+        <input type="text" id="player2Name" name="player2Name" autocomplete="off" maxlength="15"
+          placeholder="Enter Player 2 Name" />
+      </div>
+    </form>
+    <button id="startGameBtn" disabled>Start Game</button>
+  </section>
+
+  <div class="game-container" role="region" aria-label="Snake game area" tabindex="-1">
+    <canvas id="gameCanvas" width="640" height="640" aria-live="assertive"></canvas>
+  </div>
+
+  <div class="controls-container" role="region" aria-label="Game controls" tabindex="0">
+    <!-- Speed control -->
+    <div class="control-group" id="speedControl">
+      <label for="speedRange">Speed (Lower is faster)</label>
+      <input type="range" id="speedRange" min="50" max="300" step="10" value="150" aria-valuemin="50"
+        aria-valuemax="300" aria-valuenow="150" />
+    </div>
+    <!-- Pause / Resume -->
+    <div class="control-group" id="pauseControl">
+      <label>Game</label>
+      <button id="pauseBtn" aria-pressed="false" aria-label="Pause game" disabled>Pause</button>
+      <button id="resetBtn" aria-label="Reset game" disabled>Reset</button>
+    </div>
+    <!-- High Score -->
+    <div class="control-group" id="highscoreControl">
+      <label>High Scores</label>
+      <div id="highscoreDisplay" aria-live="polite" aria-atomic="true">Single Player: 0 | Multiplayer: 0</div>
+      <button id="resetHighscoreBtn" aria-label="Reset high scores">Reset High Scores</button>
+    </div>
+    <!-- Player 1 Keyboard Controls -->
+    <div class="control-group" id="p1KeyControlGroup" title="Player 1: Customize your movement keys">
+      <label for="p1UpKey">Up:</label>
+      <select id="p1UpKey" aria-label="Player 1 Up Key"></select>
+      <label for="p1DownKey">Down:</label>
+      <select id="p1DownKey" aria-label="Player 1 Down Key"></select>
+      <label for="p1LeftKey">Left:</label>
+      <select id="p1LeftKey" aria-label="Player 1 Left Key"></select>
+      <label for="p1RightKey">Right:</label>
+      <select id="p1RightKey" aria-label="Player 1 Right Key"></select>
+    </div>
+    <!-- Navigation buttons for Player 1 -->
+    <div class="control-group" id="navControlP1">
+      <label>Player 1 Controls</label>
+      <div class="btn-navigation" aria-label="Player 1 navigation buttons">
+        <button class="up" data-player="p1" data-dir="up" aria-label="Player 1 Up">&#9650;</button>
+        <button class="left" data-player="p1" data-dir="left" aria-label="Player 1 Left">&#9664;</button>
+        <button class="right" data-player="p1" data-dir="right" aria-label="Player 1 Right">&#9654;</button>
+        <button class="down" data-player="p1" data-dir="down" aria-label="Player 1 Down">&#9660;</button>
+      </div>
+    </div>
+    <!-- Navigation buttons for Player 2 -->
+    <div class="control-group" id="navControlP2" style="display:none;">
+      <label>Player 2 Controls</label>
+      <div class="btn-navigation" aria-label="Player 2 navigation buttons">
+        <button class="up" data-player="p2" data-dir="up" aria-label="Player 2 Up">&#9650;</button>
+        <button class="left" data-player="p2" data-dir="left" aria-label="Player 2 Left">&#9664;</button>
+        <button class="right" data-player="p2" data-dir="right" aria-label="Player 2 Right">&#9654;</button>
+        <button class="down" data-player="p2" data-dir="down" aria-label="Player 2 Down">&#9660;</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-display" id="statusDisplay" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="footer">Player 1 can customize keys from the dropdowns. Player 2 uses arrow keys or navigation buttons.
+    Use spacebar to pause/resume.</div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const gridSize = 16;
+      const tileCount = canvas.width / gridSize; // 20x20 grid
+
+      const DIR = {
+        left: { x: -1, y: 0 },
+        right: { x: 1, y: 0 },
+        up: { x: 0, y: -1 },
+        down: { x: 0, y: 1 },
+      };
+
+      let gameInterval;
+      let speed = 150;
+      let paused = false;
+      let stopped = false;
+      let multiplayer = false;
+      let playerNames = [];
+
+      // Player 1 Key config state
+      let p1KeyConfig = {
+        up: 'w',
+        down: 's',
+        left: 'a',
+        right: 'd'
+      };
+
+      function Snake(color, startX, startY, controls, name = '') {
+        this.color = color;
+        this.body = [{ x: startX, y: startY }];
+        this.dir = DIR.right;
+        this.nextDir = DIR.right;
+        this.controls = controls;
+        this.alive = true;
+        this.growSegments = 0;
+        this.score = 0;
+        this.name = name || '';
+      }
+      Snake.prototype.setDirection = function (dir) {
+        if (this.alive) {
+          if ((this.dir.x + dir.x) !== 0 || (this.dir.y + dir.y) !== 0) {
+            this.nextDir = dir;
+          }
+        }
+      };
+      Snake.prototype.move = function () {
+        if (!this.alive) return;
+        this.dir = this.nextDir;
+        let newHead = {
+          x: (this.body[0].x + this.dir.x + tileCount) % tileCount,
+          y: (this.body[0].y + this.dir.y + tileCount) % tileCount
+        };
+        if (this.body.some(seg => seg.x === newHead.x && seg.y === newHead.y)) {
+          this.alive = false;
+          return;
+        }
+        this.body.unshift(newHead);
+        if (this.growSegments > 0) {
+          this.growSegments--;
+          this.score++;
+        } else {
+          this.body.pop();
+        }
+      };
+      Snake.prototype.draw = function (ctx) {
+        for (let i = 0; i < this.body.length; i++) {
+          const seg = this.body[i];
+          ctx.fillStyle = i === 0 ? this.color : shadeColor(this.color, -30);
+          drawTile(ctx, seg.x, seg.y);
+        }
+      };
+
+      function Food() {
+        this.pos = { x: 0, y: 0 };
+      }
+      Food.prototype.place = function (snakes) {
+        let emptySpaces = [];
+        for (let x = 0; x < tileCount; x++) {
+          for (let y = 0; y < tileCount; y++) {
+            let taken = snakes.some(snake => snake.body.some(seg => seg.x === x && seg.y === y));
+            if (!taken) emptySpaces.push({ x, y });
+          }
+        }
+        if (emptySpaces.length === 0) return false;
+        this.pos = emptySpaces[Math.floor(Math.random() * emptySpaces.length)];
+        return true;
+      };
+      Food.prototype.draw = function (ctx) {
+        ctx.fillStyle = '#f00';
+        drawTile(ctx, this.pos.x, this.pos.y);
+      };
+
+      function drawTile(ctx, x, y) {
+        ctx.fillRect(x * gridSize + 1, y * gridSize + 1, gridSize - 2, gridSize - 2);
+      }
+
+      function shadeColor(color, percent) {
+        let f = parseInt(color.slice(1), 16), t = percent < 0 ? 0 : 255, p = percent < 0 ? percent * -1 : percent;
+        let R = f >> 16, G = f >> 8 & 0x00FF, B = f & 0x0000FF;
+        let r = Math.round((t - R) * p / 100) + R, g = Math.round((t - G) * p / 100) + G, b = Math.round((t - B) * p / 100) + B;
+        return "rgb(" + r + "," + g + "," + b + ")";
+      }
+
+      // Player 2 controls fixed (arrow keys)
+      let p2Controls = {
+        up: 'ArrowUp',
+        down: 'ArrowDown',
+        left: 'ArrowLeft',
+        right: 'ArrowRight'
+      };
+
+      let snakes;
+      let food;
+      let highScores = {
+        single: 0,
+        multi: 0
+      };
+
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const resetHighscoreBtn = document.getElementById('resetHighscoreBtn');
+      const speedRange = document.getElementById('speedRange');
+      const navControlP2 = document.getElementById('navControlP2');
+      const statusDisplay = document.getElementById('statusDisplay');
+      const highscoreDisplay = document.getElementById('highscoreDisplay');
+
+      const startOverlay = document.getElementById('startOverlay');
+      const modeRadioButtons = [...document.querySelectorAll('input[name="gameMode"]')];
+      const player1NameInput = document.getElementById('player1Name');
+      const player2NameInput = document.getElementById('player2Name');
+      const player2InputContainer = document.getElementById('player2InputContainer');
+      const startGameBtn = document.getElementById('startGameBtn');
+
+      const p1UpKeySelector = document.getElementById('p1UpKey');
+      const p1DownKeySelector = document.getElementById('p1DownKey');
+      const p1LeftKeySelector = document.getElementById('p1LeftKey');
+      const p1RightKeySelector = document.getElementById('p1RightKey');
+
+      // Populate keys a-z for selectors
+      function populateKeySelectors() {
+        const letters = [];
+        for (let i = 97; i <= 122; i++) {
+          letters.push(String.fromCharCode(i));
+        }
+        [p1UpKeySelector, p1DownKeySelector, p1LeftKeySelector, p1RightKeySelector].forEach(sel => {
+          sel.innerHTML = '';
+          letters.forEach(letter => {
+            const option = document.createElement('option');
+            option.value = letter;
+            option.textContent = letter.toUpperCase();
+            sel.appendChild(option);
+          });
+        });
+        // Default values
+        p1UpKeySelector.value = 'w';
+        p1DownKeySelector.value = 's';
+        p1LeftKeySelector.value = 'a';
+        p1RightKeySelector.value = 'd';
+      }
+
+      populateKeySelectors();
+
+      // Update P1 key config on selector change
+      function updateP1KeyConfig() {
+        p1KeyConfig.up = p1UpKeySelector.value;
+        p1KeyConfig.down = p1DownKeySelector.value;
+        p1KeyConfig.left = p1LeftKeySelector.value;
+        p1KeyConfig.right = p1RightKeySelector.value;
+
+        // Check for duplicates keys
+        const values = Object.values(p1KeyConfig);
+        const unique = new Set(values);
+        if (unique.size < 4) {
+          startGameBtn.disabled = true;
+        } else {
+          validateStartInputs();
+        }
+      }
+
+      [p1UpKeySelector, p1DownKeySelector, p1LeftKeySelector, p1RightKeySelector].forEach(sel => {
+        sel.addEventListener('change', updateP1KeyConfig);
+      });
+
+      function loadHighScores() {
+        const stored = localStorage.getItem('nokiaSnakeHighScores');
+        if (stored) {
+          try {
+            const obj = JSON.parse(stored);
+            if ('single' in obj) highScores.single = obj.single;
+            if ('multi' in obj) highScores.multi = obj.multi;
+          } catch (e) { }
+        }
+        updateHighscoreDisplay();
+      }
+
+      function saveHighScores() {
+        localStorage.setItem('nokiaSnakeHighScores', JSON.stringify(highScores));
+      }
+
+      function updateHighscoreDisplay() {
+        highscoreDisplay.textContent = `Single Player: ${highScores.single} | Multiplayer: ${highScores.multi}`;
+      }
+
+      resetHighscoreBtn.onclick = () => {
+        if (confirm('Reset all high scores?')) {
+          highScores.single = 0;
+          highScores.multi = 0;
+          saveHighScores();
+          updateHighscoreDisplay();
+        }
+      };
+
+      function validateStartInputs() {
+        const mode = getSelectedMode();
+        const p1NameValid = player1NameInput.value.trim().length > 0;
+        const p2NameValid = mode === 'multi' ? player2NameInput.value.trim().length > 0 : true;
+        const keys = Object.values(p1KeyConfig);
+        const uniqueKeys = new Set(keys).size === 4;
+        startGameBtn.disabled = !(p1NameValid && p2NameValid && uniqueKeys);
+      }
+
+      player1NameInput.addEventListener('input', validateStartInputs);
+      player2NameInput.addEventListener('input', validateStartInputs);
+
+      modeRadioButtons.forEach(radio => {
+        radio.addEventListener('change', () => {
+          if (getSelectedMode() === 'multi') {
+            player2InputContainer.style.display = 'block';
+          } else {
+            player2InputContainer.style.display = 'none';
+            player2NameInput.value = '';
+          }
+          multiplayer = (getSelectedMode() === 'multi');
+          navControlP2.style.display = multiplayer ? 'block' : 'none';
+          validateStartInputs();
+        });
+      });
+
+      function getSelectedMode() {
+        return modeRadioButtons.find(r => r.checked).value;
+      }
+
+      startGameBtn.addEventListener('click', () => {
+        playerNames = [];
+        playerNames.push(player1NameInput.value.trim());
+        if (getSelectedMode() === 'multi') {
+          playerNames.push(player2NameInput.value.trim());
+        }
+        multiplayer = (getSelectedMode() === 'multi');
+
+        // Update key config from selectors on start to catch any last changes
+        p1KeyConfig.up = p1UpKeySelector.value;
+        p1KeyConfig.down = p1DownKeySelector.value;
+        p1KeyConfig.left = p1LeftKeySelector.value;
+        p1KeyConfig.right = p1RightKeySelector.value;
+
+        startOverlay.style.display = 'none';
+
+        pauseBtn.disabled = false;
+        resetBtn.disabled = false;
+
+        initGame();
+        canvas.focus();
+      });
+
+      function initGame() {
+        stopped = false;
+        paused = false;
+        statusDisplay.textContent = '';
+        pauseBtn.textContent = 'Pause';
+        pauseBtn.setAttribute('aria-pressed', 'false');
+
+        snakes = [];
+        if (multiplayer) {
+          snakes.push(new Snake('#0f0', 6, 8, p1KeyConfig, playerNames[0]));
+          snakes.push(new Snake('#0ff', 13, 11, p2Controls, playerNames[1]));
+        } else {
+          snakes.push(new Snake('#0f0', Math.floor(tileCount / 2), Math.floor(tileCount / 2), p1KeyConfig, playerNames[0]));
+        }
+        food = new Food();
+        food.place(snakes);
+
+        speed = parseInt(speedRange.value, 1);
+        clearInterval(gameInterval);
+        gameInterval = setInterval(gameLoop, speed);
+        drawGame();
+      }
+
+      function gameLoop() {
+        if (paused) return;
+        snakes.forEach(snake => {
+          if (snake.alive) snake.move();
+        });
+
+        let deadCount = 0;
+        let winner = null;
+        for (let i = 0; i < snakes.length; i++) {
+          const snake = snakes[i];
+          if (!snake.alive) {
+            deadCount++;
+            continue;
+          }
+          for (let j = 0; j < snakes.length; j++) {
+            if (j === i) continue;
+            let other = snakes[j];
+            if (!other.alive) continue;
+            if (other.body.some(seg => seg.x === snake.body[0].x && seg.y === snake.body[0].y)) {
+              snake.alive = false;
+              deadCount++;
+              break;
+            }
+          }
+          if (!snake.alive) continue;
+
+          if (snake.body[0].x === food.pos.x && snake.body[0].y === food.pos.y) {
+            snake.growSegments += 1;
+            food.place(snakes);
+          }
+        }
+
+        if (multiplayer) {
+          if (deadCount === snakes.length) {
+            winner = 'No one, it\'s a Draw!';
+            endGame(null, winner);
+            return;
+          } else if (deadCount === snakes.length - 1) {
+            winner = snakes.find(s => s.alive);
+            if (winner) {
+              showWinner(winner);
+              return;
+            }
+          }
+        } else {
+          if (!snakes[0].alive) {
+            endGame(snakes[0]);
+            return;
+          }
+        }
+
+        drawGame();
+      }
+
+      function drawGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        food.draw(ctx);
+        snakes.forEach(snake => {
+          snake.draw(ctx);
+        });
+
+        if (!stopped) {
+          let scores = snakes.map((s, idx) => {
+            let dispName = s.name || `P${idx + 1}`;
+            return `${dispName}: ${s.score}`;
+          }).join(' | ');
+          statusDisplay.textContent = scores + (paused ? ' [PAUSED]' : '');
+        }
+      }
+
+      function showWinner(winnerSnake) {
+        stopped = true;
+        paused = true;
+        clearInterval(gameInterval);
+        let winnerName = winnerSnake.name || `Player ${snakes.indexOf(winnerSnake) + 1}`;
+        statusDisplay.textContent = `${winnerName} wins! Score: ${winnerSnake.score}`;
+        if (winnerSnake.score > highScores.multi) {
+          highScores.multi = winnerSnake.score;
+          saveHighScores();
+          updateHighscoreDisplay();
+        }
+      }
+
+      function endGame(snake, winnerText) {
+        stopped = true;
+        paused = true;
+        clearInterval(gameInterval);
+        if (winnerText) {
+          statusDisplay.textContent = winnerText;
+        } else {
+          statusDisplay.textContent = `Game Over! ${snake.name} Score: ${snake.score}`;
+          if (snake.score > highScores.single) {
+            highScores.single = snake.score;
+            saveHighScores();
+            updateHighscoreDisplay();
+          }
+        }
+      }
+
+      window.addEventListener('keydown', e => {
+        if (stopped) return;
+
+        let key = e.key.toLowerCase();
+
+        // Player 1 keys configurable
+        if (!paused && Object.values(p1KeyConfig).includes(key)) {
+          if (key === p1KeyConfig.up) snakes[0].setDirection(DIR.up);
+          else if (key === p1KeyConfig.down) snakes[0].setDirection(DIR.down);
+          else if (key === p1KeyConfig.left) snakes[0].setDirection(DIR.left);
+          else if (key === p1KeyConfig.right) snakes[0].setDirection(DIR.right);
+          e.preventDefault();
+          return;
+        }
+
+        // Player 2 arrow keys
+        if (!paused && multiplayer && Object.values(p2Controls).includes(e.key)) {
+          if (e.key === p2Controls.up) snakes[1].setDirection(DIR.up);
+          else if (e.key === p2Controls.down) snakes[1].setDirection(DIR.down);
+          else if (e.key === p2Controls.left) snakes[1].setDirection(DIR.left);
+          else if (e.key === p2Controls.right) snakes[1].setDirection(DIR.right);
+          e.preventDefault();
+          return;
+        }
+
+        if (e.key === ' ') {
+          togglePause();
+          e.preventDefault();
+        }
+      });
+
+      document.querySelectorAll('.btn-navigation button').forEach(button => {
+        button.addEventListener('click', () => {
+          if (stopped) return;
+          const player = button.getAttribute('data-player');
+          const dir = button.getAttribute('data-dir');
+          if (player === 'p1') {
+            snakes[0].setDirection(DIR[dir]);
+          } else if (player === 'p2' && snakes.length > 1) {
+            snakes[1].setDirection(DIR[dir]);
+          }
+        });
+      });
+
+      pauseBtn.addEventListener('click', () => {
+        togglePause();
+      });
+
+      function togglePause() {
+        if (stopped) return;
+        paused = !paused;
+        pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+        pauseBtn.setAttribute('aria-pressed', paused.toString());
+        statusDisplay.textContent += paused ? ' [PAUSED]' : '';
+      }
+
+      resetBtn.addEventListener('click', () => {
+        initGame();
+      });
+
+      speedRange.addEventListener('input', () => {
+        speed = parseInt(speedRange.value, 10);
+        if (gameInterval) {
+          clearInterval(gameInterval);
+          if (!paused) {
+            gameInterval = setInterval(gameLoop, speed);
+          }
+        }
+      });
+
+      loadHighScores();
+
+      // Initialize key config and validate on page load
+      updateP1KeyConfig();
+      validateStartInputs();
+
+    })();
+  </script>
+
+</body>
+
+</html>
